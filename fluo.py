@@ -11,12 +11,13 @@ def showGrid(s=20, black=155, num=True):
     if (num):
         text("   0", 0, 10)
         text(str(width), width - 20, 10)
-        #pushStyle()
+        
         fill(255, 0, 0)
         text("0", 0, 10)
         text(str(height), 0, height)
         fill(0)
-        #popStyle()
+    
+    popStyle()
         
 # Renders a vector object 'v' as an arrow and a position 'loc'
 def drawVector(v, pos, scayl):

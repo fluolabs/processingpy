@@ -14,10 +14,12 @@ def setup():
     #fluo.printSprite()
     #fluo.setTarget(8, 12)
     #fluo.printTarget()
-    fluo.curCommand = 0
-    
+    fluo.turnRight()
+    #fluo.commands = [0, 1]
+    #fluo.test()
     
 def draw():
+    
     #fluo.printSprite()
     fluo.display()
     #fluo.moveForward()
@@ -33,3 +35,9 @@ def draw():
     #fluo.drawSprite()
     #fluo.drawTarget(13, 12)
     
+    
+def keyPressed():
+    if (key == ' '):
+        if (fluo.animStart):  # reset
+            fluo.restart()
+        fluo.start()

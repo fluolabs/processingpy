@@ -1,10 +1,13 @@
 # constant values
-dirUp = 0
-dirRight = 1
-dirDown = 2
-dirLeft = 3
+dirUp = 0    # 0
+dirRight = 1 # 90
+dirDown = 2  # 180
+dirLeft = 3  # 270 degrees
 
 mForward = 0
+mBackward = 1
+tRight = 1
+tLeft = 3
 
 # configuration values
 resolution = 20
@@ -12,7 +15,9 @@ nRows = 0
 nCols = 0
 initialized = False
 debug = False
-spriteDir = 1
+spriteDir = dirRight
+targetDir = dirRight
+targetDirAngle = 0
 
 spriteLoc = PVector(0, 0)  # in grids
 spriteXY = PVector(0, 0)   # in pixel
@@ -22,16 +27,31 @@ destination = PVector(0, 0)
 destinationXY = PVector(0, 0) 
 
 speed = 1
+turnSpeed = 1
 roads = []
 commands = []
+orgCommands = []
 curCommand = None
 spriteSet = False
 targetSet = False
 destinationSet = False
-updateStarted = False
-commandStarted = False
+animStart = False
 
+def start():
+    global animStart
+    animStart = True
 
+def test():
+    print (commands)
+    print (orgCommands)
+    
+def restart():
+    global commands, orgCommands
+    commands = list(orgCommands) # https://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list
+    animStart = True
+    print(commands)
+    
+    
 def initGrid(r=20):
     global nRows, nCols, resolution, initialized
     nRows = height/r
@@ -130,10 +150,11 @@ def setTarget(xg, yg):
 
 def updateSprite():
     """ return true if reaching the target else return false"""
-    global spriteLoc, sprintXY, target, targetSet, updateStarted, curCommand 
+    global spriteLoc, sprintXY, targetSet,  commands 
     if (spriteXY == targetXY):  # reach the target
         print("reached target!")
-        curCommand = None
+        commands.pop(0)
+        targetSet = False
         return True
     else:
         if (spriteDir == dirRight):
@@ -160,7 +181,7 @@ def drawSprite():
         theta = radians(180)
     elif (dir == dirLeft):
         theta = radians(270)
-    else:
+    else:   # up
         theta = radians(0)
 
     r = 8        
@@ -186,38 +207,86 @@ def drawDestination():
     
  
 def display(grid=True):
-    if (curCommand != None):
-        if (curCommand == mForward):
-            moveForward()
+    if (animStart):
+        if (len(commands) !=0):
+            if (commands[0][0] == mForward):
+                __move(mForward, commands[0][1])
+            elif (commands[0][0] == mBackward):
+                __move(mBackward, commands[0][1])
         
     background(220)
     if (grid):
         showGrid(index=True)
     drawRoads()
-    drawSprite()
     drawDestination()
+    drawSprite()
+
+def turnRight(amount = 90):
+    commands.append((tRight, amount))
+    orgCommands.append((tRight, amount))
+
+def turnLeft(amount = 90):
+    commands.append((tLeft, amount))
+    orgCommands.append((tLeft, amount))
     
-def moveForward(amount = 3):
-    """ return True if the move forward is done, otherwise return false"""
-    global spriteLoc, targetLoc, targetXY, targetSet, updateStarted, commandStarted
-    if (commandStarted):
+def __turn(type = tRight, amount = 90):
+    global spriteLoc, targetDir, targetSet, turnSpeed
+    if (targetSet):
         updateSprite()
     else:
-        if (targetSet == False):
-            targetLoc = spriteLoc.get()
-            if (spriteDir == dirRight):
-                targetLoc.x += amount
-            elif (spriteDir == dirBottom):
-                targetLoc.y += amount
-            elif (spriteDir == dirLeft):
-                targetLoc.x -= amount
-            else:
-                targetLoc.y -= amount
-                
-            targetXY = gridToXY(targetLoc)
-            targetSet = True
-            commandStarted = True
+        if (type == tRight):
+            turnSpeed = abs(turnSpeed)
+        if (type == mLeft):
+            turnSpeed = -1 * abs(turnSpeed)
+            amount *= -1
+            
+        targetLoc = spriteLoc.get()
+        if (spriteDir == dirRight):
+            targetLoc.x += amount
+        elif (spriteDir == dirBottom):
+            targetLoc.y += amount
+        elif (spriteDir == dirLeft):
+            targetLoc.x -= amount
+        else:
+            targetLoc.y -= amount
+            
+        targetXY = gridToXY(targetLoc)
+        targetSet = True
+
     
+def moveForward(amount = 3):
+    commands.append((mForward, amount))
+    orgCommands.append((mForward, amount))
+    
+def moveBackward(amount = 3):
+    commands.append((mBackward, amount))
+    orgCommands.append((mBackward, amount))
+
+def __move(type = mForward, amount = 3):
+    """ return True if the move forward is done, otherwise return false"""
+    global spriteLoc, targetLoc, targetXY, targetSet, speed
+    if (targetSet):
+        updateSprite()
+    else:
+        if (type == mForward):
+            speed = abs(speed)
+        if (type == mBackward):
+            speed = -1 * abs(speed)
+            amount *= -1
+            
+        targetLoc = spriteLoc.get()
+        if (spriteDir == dirRight):
+            targetLoc.x += amount
+        elif (spriteDir == dirBottom):
+            targetLoc.y += amount
+        elif (spriteDir == dirLeft):
+            targetLoc.x -= amount
+        else:
+            targetLoc.y -= amount
+            
+        targetXY = gridToXY(targetLoc)
+        targetSet = True
+
         
 # Renders a vector object 'v' as an arrow and a position 'loc'
 def drawVector(v, pos, scayl):

@@ -4,6 +4,8 @@ dirRight = 1
 dirDown = 2
 dirLeft = 3
 
+mForward = 0
+
 # configuration values
 resolution = 20
 nRows = 0
@@ -21,10 +23,13 @@ destinationXY = PVector(0, 0)
 
 speed = 1
 roads = []
+commands = []
+curCommand = None
 spriteSet = False
 targetSet = False
 destinationSet = False
 updateStarted = False
+commandStarted = False
 
 
 def initGrid(r=20):
@@ -99,7 +104,8 @@ def setSprite(xg, yg, direction=1):
     spriteSet = True
 
 def printSprite():
-    print("sprite:" + str(spriteLoc.x) + " " + str(spriteLoc.y))
+    print("spriteLoc:" + str(spriteLoc.x) + " " + str(spriteLoc.y) + 
+          "spriteXY:" + str(spriteXY.x) + " " + str(spriteXY.y))
 
 def printTarget():
     print("targetLoc:" + str(targetLoc.x) + " " + str(targetLoc.y) + 
@@ -123,24 +129,23 @@ def setTarget(xg, yg):
     targetSet = True
 
 def updateSprite():
-    global spriteLoc, sprintXY, target, targetSet, updateStarted 
-
-    if (targetSet):
-        if (spriteXY == targetXY):  # reach the target
-            targetSet = False
-            updateStarted = False
+    """ return true if reaching the target else return false"""
+    global spriteLoc, sprintXY, target, targetSet, updateStarted, curCommand 
+    if (spriteXY == targetXY):  # reach the target
+        print("reached target!")
+        curCommand = None
+        return True
+    else:
+        if (spriteDir == dirRight):
+            spriteXY.x += speed
+        elif (spriteDir == dirBottom):
+            spriteXY.y += speed
+        elif (spriteDir == dirLeft):
+            spriteXY.x -= speed
         else:
-            updateStarted = True
-            if (spriteDir == dirRight):
-                spriteXY.x += speed
-            elif (spriteDir == dirBottom):
-                spriteXY.y += speed
-            elif (spriteDir == dirLeft):
-                spriteXY.x -= speed
-            else:
-                spriteXY.y -= speed
-                
-            spriteLoc = xyToGrid(spriteXY)
+            spriteXY.y -= speed
+            
+        spriteLoc = xyToGrid(spriteXY)
 
 def drawSprite():
     # Draw a triangle rotated in the direction of velocity
@@ -181,6 +186,10 @@ def drawDestination():
     
  
 def display(grid=True):
+    if (curCommand != None):
+        if (curCommand == mForward):
+            moveForward()
+        
     background(220)
     if (grid):
         showGrid(index=True)
@@ -189,34 +198,25 @@ def display(grid=True):
     drawDestination()
     
 def moveForward(amount = 3):
-    """ Move gridDist at a time in the sprite direction"""
-    global spriteLoc, targetLoc, targetXY, targetSet, updateStarted
-    if (updateStarted):
-        background(220)
-        showGrid(index=True)
-        drawRoads()
-        drawDestination()
-        drawSprite()
+    """ return True if the move forward is done, otherwise return false"""
+    global spriteLoc, targetLoc, targetXY, targetSet, updateStarted, commandStarted
+    if (commandStarted):
         updateSprite()
-        
-    
-    if (targetSet == False):
-        targetLoc = spriteLoc.get()
-        if (spriteDir == dirRight):
-            targetLoc.x += amount
-        elif (spriteDir == dirBottom):
-            targetLoc.y += amount
-        elif (spriteDir == dirLeft):
-            targetLoc.x -= amount
-        else:
-            targetLoc.y -= amount
-            
-        targetXY = gridToXY(targetLoc)
-        targetSet = True
-        animStart = True
-        printTarget()
-        updateStarted = True
-  
+    else:
+        if (targetSet == False):
+            targetLoc = spriteLoc.get()
+            if (spriteDir == dirRight):
+                targetLoc.x += amount
+            elif (spriteDir == dirBottom):
+                targetLoc.y += amount
+            elif (spriteDir == dirLeft):
+                targetLoc.x -= amount
+            else:
+                targetLoc.y -= amount
+                
+            targetXY = gridToXY(targetLoc)
+            targetSet = True
+            commandStarted = True
     
         
 # Renders a vector object 'v' as an arrow and a position 'loc'

@@ -11,14 +11,15 @@ def setup():
     fluo.drawRoads()
     fluo.drawSprite()
     fluo.drawDestination()
-    fluo.printSprite()
-    fluo.setTarget(7, 13)
-    fluo.printTarget()
+    #fluo.printSprite()
+    #fluo.setTarget(8, 12)
+    #fluo.printTarget()
+    fluo.curCommand = 0
+    
     
 def draw():
-    pass
     #fluo.printSprite()
-    #fluo.display()
+    fluo.display()
     #fluo.moveForward()
     #fluo.moveForward()
     #pass

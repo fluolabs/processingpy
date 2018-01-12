@@ -6,7 +6,7 @@ dirLeft = 3  # 270 degrees
 
 mForward = 0
 mBackward = 1
-tRight = 1
+tRight = 2
 tLeft = 3
 
 # configuration values
@@ -16,11 +16,13 @@ nCols = 0
 initialized = False
 debug = False
 spriteDir = dirRight
-targetDir = dirRight
-targetDirAngle = 0
+spriteAngle = 90
+targetAngle = 90
 
 spriteLoc = PVector(0, 0)  # in grids
+orgSpriteLoc = PVector(0, 0)
 spriteXY = PVector(0, 0)   # in pixel
+
 targetLoc = PVector(0, 0)  
 targetXY = PVector(0, 0) 
 destination = PVector(0, 0) 
@@ -34,6 +36,7 @@ orgCommands = []
 curCommand = None
 spriteSet = False
 targetSet = False
+targetAngleSet = False
 destinationSet = False
 animStart = False
 
@@ -41,15 +44,27 @@ def start():
     global animStart
     animStart = True
 
-def test():
-    print (commands)
-    print (orgCommands)
+def angleToDirection(angle):
+    ang = angle % 360
+     
+    if (ang >= 0 and ang < 90):
+        dir = dirUp
+    elif(ang >= 90 and ang < 180):
+        dir = dirRight
+    elif(ang >= 180 and ang < 270):
+        dir = dirDown
+    else:
+        dir = dirLeft
+
+    return(dir)
+                        
     
 def restart():
     global commands, orgCommands
     commands = list(orgCommands) # https://stackoverflow.com/questions/2612802/how-to-clone-or-copy-a-list
     animStart = True
-    print(commands)
+    setSprite(spriteLoc.x, spriteLoc.y)
+    #print(commands)
     
     
 def initGrid(r=20):
@@ -98,7 +113,6 @@ def printRoads():
         print("road " + str(i+1) + ": " + str(roads[i][0].x) + " " + str(roads[i][0].y) + 
               " " + str(roads[i][1].x) + " " + str(roads[i][1].y)) 
 
-        
 def drawRoads():
     pushStyle()
     strokeWeight(20)
@@ -116,11 +130,20 @@ def gridToXY(g):
 def xyToGrid(loc):
     return (PVector(floor(loc.x / resolution), floor(loc.y / resolution)))
    
-def setSprite(xg, yg, direction=1):
-    global spriteLoc, spriteXY, spriteDir, spriteSet
+def setSprite(xg, yg, direction=dirRight):
+    global spriteLoc, spriteXY, spriteSet, spriteAngle
     spriteLoc = PVector(xg, yg)
     spriteXY = gridToXY(spriteLoc)
-    spriteDir = direction
+    if (direction == dirUp):
+        spriteAngle = 0
+    elif (direction == dirRight):
+        spriteAngle = 90
+    elif (direction == dirDown):
+        spriteAngle = 180
+    elif (direction == dirLeft):
+        spriteAngle = 270
+    
+    orgSpriteAngle = spriteAngle
     spriteSet = True
 
 def printSprite():
@@ -159,7 +182,7 @@ def updateSprite():
     else:
         if (spriteDir == dirRight):
             spriteXY.x += speed
-        elif (spriteDir == dirBottom):
+        elif (spriteDir == dirDown):
             spriteXY.y += speed
         elif (spriteDir == dirLeft):
             spriteXY.x -= speed
@@ -168,21 +191,25 @@ def updateSprite():
             
         spriteLoc = xyToGrid(spriteXY)
 
+def updateSpriteAngle():
+    """ return true if reaching the target else return false"""
+    global spriteAngle, targetAngleSet, commands, spriteDir 
+    if (spriteAngle == targetAngle):  # reach the target
+        print("reached target angle!")
+        commands.pop(0)
+        targetAngleSet = False
+        spriteDir = angleToDirection(spriteAngle)
+        return True
+    else:
+        spriteAngle += turnSpeed
+
 def drawSprite():
     # Draw a triangle rotated in the direction of velocity
     if (spriteSet == False):
         print("Sprite is not set")
         return
     
-    dir = spriteDir
-    if (dir == dirRight):
-        theta = radians(90)
-    elif (dir == dirDown):
-        theta = radians(180)
-    elif (dir == dirLeft):
-        theta = radians(270)
-    else:   # up
-        theta = radians(0)
+    theta = radians(spriteAngle)
 
     r = 8        
     fill(0, 255, 0)
@@ -209,10 +236,15 @@ def drawDestination():
 def display(grid=True):
     if (animStart):
         if (len(commands) !=0):
-            if (commands[0][0] == mForward):
-                __move(mForward, commands[0][1])
-            elif (commands[0][0] == mBackward):
-                __move(mBackward, commands[0][1])
+            cur = commands[0]
+            if (cur[0] == mForward):
+                __move(mForward, cur[1])
+            elif (cur[0] == mBackward):
+                __move(mBackward, cur[1])
+            elif (cur[0] == tRight):
+                __turn(tRight, cur[1])
+            elif (cur[0] == tLeft):
+                __turn(tLeft, cur[1])
         
     background(220)
     if (grid):
@@ -230,28 +262,18 @@ def turnLeft(amount = 90):
     orgCommands.append((tLeft, amount))
     
 def __turn(type = tRight, amount = 90):
-    global spriteLoc, targetDir, targetSet, turnSpeed
-    if (targetSet):
-        updateSprite()
+    global targetAngle, targetAngleSet, turnSpeed
+    if (targetAngleSet):
+        updateSpriteAngle()
     else:
         if (type == tRight):
             turnSpeed = abs(turnSpeed)
-        if (type == mLeft):
+        elif (type == tLeft):
             turnSpeed = -1 * abs(turnSpeed)
             amount *= -1
             
-        targetLoc = spriteLoc.get()
-        if (spriteDir == dirRight):
-            targetLoc.x += amount
-        elif (spriteDir == dirBottom):
-            targetLoc.y += amount
-        elif (spriteDir == dirLeft):
-            targetLoc.x -= amount
-        else:
-            targetLoc.y -= amount
-            
-        targetXY = gridToXY(targetLoc)
-        targetSet = True
+        targetAngle = spriteAngle + amount
+        targetAngleSet = True
 
     
 def moveForward(amount = 3):
@@ -273,11 +295,11 @@ def __move(type = mForward, amount = 3):
         if (type == mBackward):
             speed = -1 * abs(speed)
             amount *= -1
-            
+        print(spriteDir)
         targetLoc = spriteLoc.get()
         if (spriteDir == dirRight):
             targetLoc.x += amount
-        elif (spriteDir == dirBottom):
+        elif (spriteDir == dirDown):
             targetLoc.y += amount
         elif (spriteDir == dirLeft):
             targetLoc.x -= amount

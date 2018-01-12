@@ -1,22 +1,41 @@
-def showGrid(s=20, lineColor=155, num=True):
+def showGrid(r=20, lineColor=155, lineWeight=1, index=False, w=None, h=None):
     """Display grid lines"""
-    rows = height/s
-    cols = width/s
+    global nRows, nCols, resolution, initialized
+    if (w == None):
+        w = width
+    if (h == None):
+        h = height
+
+    if (initialized == False):
+        nRows = h/r
+        nCols = w/r
+        initialized = True
+        resolution = r
+    
     pushStyle()
     stroke(lineColor)
-    for i in range(rows):
-        line(0, s*i, width, s*i)
-    for i in range(cols):
-        line(s*i, 0, s*i, height)
+    strokeWeight(1)
+    textSize(12)
+    for i in range(nRows + 1):
+        line(0, r*i, w, r*i)
+    for i in range(nCols + 1):
+        line(r*i, 0, r*i, h)
         
-    if (num):
+    if (index):
+        fill(255, 0255, 0)
+        for i in range(nRows):
+            text(str(i), 0, r*(i+1))
         fill(0)
+        for i in range(nCols):
+            text(str(i), r*(i), 10)
+    else:
+        fill(150)
         text("   0", 0, 10)
-        text(str(width), width - 20, 10)
+        text(str(w), w - 20, 10)
         fill(255, 0, 0)
         text("0", 0, 10)
-        text(str(height), 0, height)
-    
+        text(str(h), 0, h)
+        
     popStyle()
         
 # Renders a vector object 'v' as an arrow and a position 'loc'

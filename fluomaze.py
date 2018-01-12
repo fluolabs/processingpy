@@ -66,41 +66,45 @@ def restart():
     setSprite(spriteLoc.x, spriteLoc.y)
     #print(commands)
     
+ 
     
-def initGrid(r=20):
-    global nRows, nCols, resolution, initialized
-    nRows = height/r
-    nCols = width/r
-    initialized = True
-    resolution = r
-    
-def showGrid(r=20, lineColor=155, lineWeight=1, index=False):
+def showGrid(r=20, lineColor=155, lineWeight=1, index=False, w=None, h=None):
     """Display grid lines"""
+    global nRows, nCols, resolution, initialized
+    if (w == None):
+        w = width
+    if (h == None):
+        h = height
+
     if (initialized == False):
-        initGrid(r)
-        
+        nRows = h/r
+        nCols = w/r
+        initialized = True
+        resolution = r
+    
     pushStyle()
     stroke(lineColor)
     strokeWeight(1)
-    for i in range(nRows):
-        line(0, r*i, width, r*i)
-    for i in range(nCols):
-        line(r*i, 0, r*i, height)
+    textSize(12)
+    for i in range(nRows + 1):
+        line(0, r*i, w, r*i)
+    for i in range(nCols + 1):
+        line(r*i, 0, r*i, h)
         
     if (index):
-        fill(255, 0, 0)
+        fill(255, 0255, 0)
         for i in range(nRows):
             text(str(i), 0, r*(i+1))
         fill(0)
         for i in range(nCols):
             text(str(i), r*(i), 10)
     else:
-        fill(0)
+        fill(150)
         text("   0", 0, 10)
-        text(str(width), width - 20, 10)
+        text(str(w), w - 20, 10)
         fill(255, 0, 0)
         text("0", 0, 10)
-        text(str(height), 0, height)
+        text(str(h), 0, h)
         
     popStyle()
     

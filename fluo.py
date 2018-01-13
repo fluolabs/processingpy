@@ -1,3 +1,5 @@
+initialized = False
+
 def showGrid(r=20, lineColor=155, lineWeight=1, index=False, w=None, h=None):
     """Display grid lines"""
     global nRows, nCols, resolution, initialized

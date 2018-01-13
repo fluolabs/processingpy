@@ -24,7 +24,7 @@ def showGrid(r=20, lineColor=155, lineWeight=1, index=False, w=None, h=None):
         line(r*i, 0, r*i, h)
         
     if (index):
-        fill(255, 0255, 0)
+        fill(255, 0, 0)
         for i in range(nRows):
             text(str(i), 0, r*(i+1))
         fill(0)
